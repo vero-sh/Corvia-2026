@@ -1,4 +1,4 @@
-/salute_app
+/saluteWebApp
 │
 ├── index.php
 ├── login.php
