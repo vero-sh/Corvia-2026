@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Salute & Benessere – Dashboard</title>
+  <link rel="stylesheet" href="style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <!-- Chart.js per i grafici -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
+</head>
+<body>
+
+  <!-- ── Barra di navigazione superiore ─────────────────────────────── -->
+  <nav class="navbar">
+    <div class="navbar-brand" onclick="window.location.href='/'">
+      <img src="logo.png" class="logo-spin logo-nav" alt="Logo">
+      <span>Salute & Benessere</span>
+    </div>
+    <div class="navbar-user">
+      <span id="benvenuto"></span>
+      <button class="btn-logout" onclick="logout()">
+        <i class="fas fa-sign-out-alt"></i> Esci
+      </button>
+    </div>
+  </nav>
+
+  <!-- ── Contenuto principale ───────────────────────────────────────── -->
+  <main class="dashboard-main">
+
+    <!-- Riga 1: Schede statistiche -->
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-icon"><i class="fas fa-weight"></i></div>
+        <div class="stat-info">
+          <span class="stat-label">BMI</span>
+          <span class="stat-value" id="bmi-valore">–</span>
+          <span class="stat-badge" id="bmi-categoria">–</span>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon green"><i class="fas fa-weight-hanging"></i></div>
+        <div class="stat-info">
+          <span class="stat-label">Peso attuale</span>
+          <span class="stat-value" id="peso-valore">–</span>
+          <span class="stat-unit">kg</span>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon purple"><i class="fas fa-ruler-vertical"></i></div>
+        <div class="stat-info">
+          <span class="stat-label">Altezza</span>
+          <span class="stat-value" id="altezza-valore">–</span>
+          <span class="stat-unit">cm</span>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon orange"><i class="fas fa-fire"></i></div>
+        <div class="stat-info">
+          <span class="stat-label">Metabolismo basale</span>
+          <span class="stat-value" id="bmr-valore">–</span>
+          <span class="stat-unit">kcal/giorno</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Riga 2: Grafici -->
+    <div class="charts-grid">
+
+      <!-- Grafico andamento peso (linea) -->
+      <div class="card">
+        <h3><i class="fas fa-chart-line"></i> Andamento del peso</h3>
+        <canvas id="grafico-peso" height="90"></canvas>
+        <p class="no-data nascosto" id="no-data-peso">
+          Inserisci la prima misurazione per vedere il grafico
+        </p>
+      </div>
+
+      <!-- Gauge BMI (semicerchio) -->
+      <div class="card">
+        <h3><i class="fas fa-tachometer-alt"></i> Indice di massa corporea</h3>
+        <canvas id="grafico-bmi" height="130"></canvas>
+        <div class="bmi-scale">
+          <span class="scale-item blue">Sottopeso<br><small>&lt;18.5</small></span>
+          <span class="scale-item green">Normopeso<br><small>18.5–25</small></span>
+          <span class="scale-item orange">Sovrappeso<br><small>25–30</small></span>
+          <span class="scale-item red">Obesità<br><small>&gt;30</small></span>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Riga 3: Form nuova misurazione + Storico -->
+    <div class="bottom-grid">
+
+      <!-- Form -->
+      <div class="card form-card">
+        <h3><i class="fas fa-plus-circle"></i> Nuova misurazione</h3>
+        <div class="form-group">
+          <label>Peso (kg)</label>
+          <input type="number" id="input-peso" placeholder="es. 70.5" step="0.1" min="20" max="300">
+        </div>
+        <div class="form-group">
+          <label>Altezza (cm)</label>
+          <input type="number" id="input-altezza" placeholder="es. 175" min="100" max="250">
+        </div>
+        <div class="form-group">
+          <label>Note (opzionale)</label>
+          <input type="text" id="input-nota" placeholder="es. dopo allenamento">
+        </div>
+        <p id="form-errore" class="errore"></p>
+        <button class="btn-primary" onclick="aggiungiMisurazione()">
+          <i class="fas fa-save"></i> Salva misurazione
+        </button>
+      </div>
+
+      <!-- Tabella storico -->
+      <div class="card">
+        <h3><i class="fas fa-history"></i> Storico misurazioni</h3>
+        <div class="table-wrapper">
+          <table class="storico-table">
+            <thead>
+              <tr>
+                <th>Data</th>
+                <th>Peso</th>
+                <th>Altezza</th>
+                <th>BMI</th>
+                <th>BMR</th>
+                <th>Nota</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="storico-tbody">
+              <tr><td colspan="7" class="empty-msg">Nessuna misurazione ancora</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Riga 4: Chat IA -->
+    <div class="card ai-card">
+      <h3><i class="fas fa-robot"></i> Assistente IA per la salute</h3>
+      <div id="chat-messaggi" class="chat-messaggi">
+        <div class="msg-ai">
+          <div class="msg-bubble">Ciao! Sono il tuo assistente per la salute 💪 Conosco il tuo BMI iniziale e i tuoi dati. Chiedimi qualsiasi cosa su alimentazione, esercizio o benessere!</div>
+        </div>
+      </div>
+      <div class="chat-input-row">
+        <input type="text" id="chat-input" placeholder="Scrivi un messaggio..." onkeydown="if(event.key==='Enter') inviaMessaggio()">
+        <button class="btn-invia" id="btn-invia" onclick="inviaMessaggio()">
+          <i class="fas fa-paper-plane"></i>
+        </button>
+      </div>
+    </div>
+
+  </main>
+
+  <script>
+    // ── Variabili per i grafici (serve tenerle per poterli distruggere e ricreare) ──
+    let graficoLinea = null;
+    let graficoBmi   = null;
+
+    // ── Avvio: controlla login e carica dati ──────────────────────────────────
+    async function init() {
+      const res = await fetch('/api/utente');
+      if (!res.ok) { window.location.href = '/'; return; }
+
+      const utente = await res.json();
+      document.getElementById('benvenuto').textContent = `Ciao, ${utente.nome} 👋`;
+
+      // Pre-compila altezza dall'ultima misurazione se disponibile
+      caricaMisurazioni();
+    }
+
+    // ── Carica tutte le misurazioni e aggiorna l'intera pagina ───────────────
+    async function caricaMisurazioni() {
+      const res          = await fetch('/api/misurazioni');
+      const misurazioni  = await res.json();
+
+      if (misurazioni.length === 0) {
+        // Nessun dato ancora
+        aggiornaGraficoLinea([]);
+        aggiornaBMIGauge(null);
+        document.getElementById('no-data-peso').classList.remove('nascosto');
+        return;
+      }
+
+      // La prima è la più recente (il server ordina DESC)
+      const ultima = misurazioni[0];
+
+      // Aggiorna le 4 schede
+      document.getElementById('bmi-valore').textContent     = ultima.bmi;
+      document.getElementById('peso-valore').textContent    = ultima.peso;
+      document.getElementById('altezza-valore').textContent = ultima.altezza;
+      document.getElementById('bmr-valore').textContent     = ultima.bmr;
+
+      // Colora il badge BMI
+      const cat   = categoriaBMI(ultima.bmi);
+      const badge = document.getElementById('bmi-categoria');
+      badge.textContent        = cat.label;
+      badge.style.background   = cat.colore;
+
+      // Pre-compila altezza nel form
+      document.getElementById('input-altezza').value = ultima.altezza;
+
+      // Tabella storico
+      aggiornaTabella(misurazioni);
+
+      // Grafici – prendiamo le ultime 10 in ordine cronologico
+      const cronologico = [...misurazioni].reverse().slice(-10);
+      aggiornaGraficoLinea(cronologico);
+      aggiornaBMIGauge(ultima.bmi);
+      document.getElementById('no-data-peso').classList.add('nascosto');
+    }
+
+    // ── Tabella ────────────────────────────────────────────────────────────────
+    function aggiornaTabella(misurazioni) {
+      const tbody = document.getElementById('storico-tbody');
+      tbody.innerHTML = '';
+
+      misurazioni.forEach(m => {
+        const cat = categoriaBMI(m.bmi);
+        tbody.innerHTML += `
+          <tr>
+            <td>${formatData(m.data)}</td>
+            <td><strong>${m.peso} kg</strong></td>
+            <td>${m.altezza} cm</td>
+            <td><span class="badge" style="background:${cat.colore}">${m.bmi}</span></td>
+            <td>${m.bmr} kcal</td>
+            <td style="color:#94a3b8;font-size:13px">${m.nota || '–'}</td>
+            <td>
+              <button class="btn-delete" onclick="elimina(${m.id})" title="Elimina">
+                <i class="fas fa-trash"></i>
+              </button>
+            </td>
+          </tr>`;
+      });
+    }
+
+    // ── Grafico linea – andamento peso ─────────────────────────────────────────
+    function aggiornaGraficoLinea(misurazioni) {
+      const ctx = document.getElementById('grafico-peso').getContext('2d');
+      if (graficoLinea) graficoLinea.destroy();
+      if (misurazioni.length === 0) return;
+
+      graficoLinea = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: misurazioni.map(m => formatData(m.data)),
+          datasets: [{
+            label: 'Peso (kg)',
+            data: misurazioni.map(m => m.peso),
+            borderColor: '#6366f1',
+            backgroundColor: 'rgba(99,102,241,0.08)',
+            borderWidth: 3,
+            pointBackgroundColor: '#6366f1',
+            pointRadius: 5,
+            tension: 0.4,   // linea curva (più bella)
+            fill: true
+          }]
+        },
+        options: {
+          responsive: true,
+          plugins: { legend: { display: false } },
+          scales: {
+            y: {
+              beginAtZero: false,
+              grid: { color: 'rgba(0,0,0,0.04)' },
+              ticks: { font: { family: 'Poppins', size: 12 } }
+            },
+            x: {
+              grid: { display: false },
+              ticks: { font: { family: 'Poppins', size: 12 } }
+            }
+          }
+        }
+      });
+    }
+
+    // ── Gauge semicircolare BMI ────────────────────────────────────────────────
+    function aggiornaBMIGauge(bmi) {
+      const ctx = document.getElementById('grafico-bmi').getContext('2d');
+      if (graficoBmi) graficoBmi.destroy();
+
+      // Mappiamo il BMI su una scala da 10 a 40 (range di 30 punti)
+      const valoreNorm  = bmi ? Math.min(Math.max(bmi - 10, 0), 30) : 0;
+      const rimanente   = 30 - valoreNorm;
+      const cat         = bmi ? categoriaBMI(bmi) : { colore: '#e2e8f0' };
+
+      graficoBmi = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+          datasets: [{
+            data: [valoreNorm, rimanente],
+            backgroundColor: [cat.colore, '#f1f5f9'],
+            borderWidth: 0
+          }]
+        },
+        options: {
+          responsive: true,
+          cutout: '72%',
+          rotation: -90,        // inizia da sinistra
+          circumference: 180,   // mezzo cerchio
+          plugins: {
+            legend:  { display: false },
+            tooltip: { enabled: false }
+          }
+        },
+        // Plugin inline per scrivere il valore BMI al centro
+        plugins: [{
+          id: 'labelCentro',
+          afterDraw(chart) {
+            const { ctx: c, chartArea: { left, top, width, height } } = chart;
+            const cx = left + width / 2;
+            const cy = top + height * 0.82;
+            c.save();
+            c.font = `700 34px Poppins`;
+            c.fillStyle = '#1e293b';
+            c.textAlign = 'center';
+            c.textBaseline = 'middle';
+            c.fillText(bmi ?? '–', cx, cy);
+            c.restore();
+          }
+        }]
+      });
+    }
+
+    // ── Salva nuova misurazione ────────────────────────────────────────────────
+    async function aggiungiMisurazione() {
+      const peso    = parseFloat(document.getElementById('input-peso').value);
+      const altezza = parseFloat(document.getElementById('input-altezza').value);
+      const nota    = document.getElementById('input-nota').value.trim();
+      const errore  = document.getElementById('form-errore');
+
+      errore.textContent = '';
+
+      if (!peso || !altezza) {
+        errore.textContent = 'Inserisci peso e altezza'; return;
+      }
+      if (peso < 20 || peso > 300) {
+        errore.textContent = 'Peso non valido (20–300 kg)'; return;
+      }
+      if (altezza < 100 || altezza > 250) {
+        errore.textContent = 'Altezza non valida (100–250 cm)'; return;
+      }
+
+      const res = await fetch('/api/misurazioni', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ peso, altezza, nota })
+      });
+
+      if (res.ok) {
+        document.getElementById('input-peso').value = '';
+        document.getElementById('input-nota').value = '';
+        caricaMisurazioni();   // ricarica tutto
+      } else {
+        const data = await res.json();
+        errore.textContent = data.errore;
+      }
+    }
+
+    // ── Elimina una riga ───────────────────────────────────────────────────────
+    async function elimina(id) {
+      if (!confirm('Eliminare questa misurazione?')) return;
+      await fetch('/api/misurazioni/' + id, { method: 'DELETE' });
+      caricaMisurazioni();
+    }
+
+    // ── Logout ─────────────────────────────────────────────────────────────────
+    async function logout() {
+      await fetch('/api/logout', { method: 'POST' });
+      window.location.href = '/login';
+    }
+
+    // ── Funzioni di utilità ────────────────────────────────────────────────────
+
+    // Restituisce etichetta e colore per una categoria BMI
+    function categoriaBMI(bmi) {
+      if (bmi < 18.5) return { label: 'Sottopeso',  colore: '#3b82f6' };
+      if (bmi < 25)   return { label: 'Normopeso',  colore: '#22c55e' };
+      if (bmi < 30)   return { label: 'Sovrappeso', colore: '#f59e0b' };
+      return                  { label: 'Obesità',   colore: '#ef4444' };
+    }
+
+    // Formatta la data da "2026-05-10" a "10 mag"
+    function formatData(data) {
+      return new Date(data + 'T00:00:00').toLocaleDateString('it-IT', {
+        day: '2-digit', month: 'short'
+      });
+    }
+
+    // ── Chat IA ────────────────────────────────────────────────────────────────
+    let cronologiaChat = [];
+
+    async function inviaMessaggio() {
+      const input   = document.getElementById('chat-input');
+      const btnInvia = document.getElementById('btn-invia');
+      const messaggio = input.value.trim();
+      if (!messaggio) return;
+
+      btnInvia.disabled = true;
+      input.value = '';
+
+      aggiungiMsg('utente', messaggio);
+      const typingId = mostraTyping();
+
+      try {
+        const res  = await fetch('/api/chat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ messaggio, cronologia: cronologiaChat })
+        });
+        const data = await res.json();
+        rimuoviTyping(typingId);
+
+        if (res.ok) {
+          aggiungiMsg('ai', data.risposta);
+          cronologiaChat.push({ role: 'user', content: messaggio });
+          cronologiaChat.push({ role: 'assistant', content: data.risposta });
+          if (cronologiaChat.length > 20) cronologiaChat = cronologiaChat.slice(-20);
+        } else {
+          aggiungiMsg('ai', '❌ ' + data.errore);
+        }
+      } catch {
+        rimuoviTyping(typingId);
+        aggiungiMsg('ai', '❌ Errore di connessione.');
+      } finally {
+        btnInvia.disabled = false;
+        input.focus();
+      }
+    }
+
+    function aggiungiMsg(tipo, testo) {
+      const container = document.getElementById('chat-messaggi');
+      const div = document.createElement('div');
+      div.className = tipo === 'utente' ? 'msg-utente' : 'msg-ai';
+      div.innerHTML = `<div class="msg-bubble">${testo.replace(/\n/g, '<br>')}</div>`;
+      container.appendChild(div);
+      container.scrollTop = container.scrollHeight;
+    }
+
+    function mostraTyping() {
+      const container = document.getElementById('chat-messaggi');
+      const id = 'typing-' + Date.now();
+      const div = document.createElement('div');
+      div.className = 'msg-ai';
+      div.id = id;
+      div.innerHTML = '<div class="msg-bubble typing"><span></span><span></span><span></span></div>';
+      container.appendChild(div);
+      container.scrollTop = container.scrollHeight;
+      return id;
+    }
+
+    function rimuoviTyping(id) {
+      const el = document.getElementById(id);
+      if (el) el.remove();
+    }
+
+    // Avvia la pagina
+    init();
+  </script>
+
+</body>
+</html>

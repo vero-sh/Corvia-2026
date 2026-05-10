@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Salute & Benessere – Accedi</title>
+  <link rel="stylesheet" href="style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+</head>
+<body class="auth-body">
+
+  <div class="bg-bubbles">
+    <span></span><span></span><span></span><span></span>
+    <span></span><span></span><span></span><span></span>
+  </div>
+
+  <div class="auth-card">
+
+    <div class="auth-logo">
+      <div class="logo-icon">
+        <img src="logo.png" class="logo-spin" alt="Logo">
+      </div>
+      <h1>Salute & Benessere</h1>
+      <p>Monitora il tuo peso e la tua salute</p>
+    </div>
+
+    <div class="auth-tabs">
+      <button class="tab-btn active" id="tab-btn-login" onclick="mostraTab('login', this)">Accedi</button>
+      <button class="tab-btn" id="tab-btn-registrazione" onclick="mostraTab('registrazione', this)">Registrati</button>
+    </div>
+
+    <div id="tab-login">
+      <div class="form-group">
+        <i class="fas fa-envelope"></i>
+        <input type="email" id="login-email" placeholder="Email" autocomplete="email">
+      </div>
+      <div class="form-group">
+        <i class="fas fa-lock"></i>
+        <input type="password" id="login-password" placeholder="Password">
+      </div>
+      <p id="login-errore" class="errore"></p>
+      <button class="btn-primary" onclick="login()">
+        <span>Accedi</span> <i class="fas fa-arrow-right"></i>
+      </button>
+    </div>
+
+    <div id="tab-registrazione" class="nascosto">
+      <div class="form-group">
+        <i class="fas fa-user"></i>
+        <input type="text" id="reg-nome" placeholder="Nome e cognome">
+      </div>
+      <div class="form-group">
+        <i class="fas fa-envelope"></i>
+        <input type="email" id="reg-email" placeholder="Email">
+      </div>
+      <div class="form-group">
+        <i class="fas fa-lock"></i>
+        <input type="password" id="reg-password" placeholder="Password (min. 6 caratteri)">
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <i class="fas fa-calendar"></i>
+          <input type="number" id="reg-eta" placeholder="Età" min="10" max="120">
+        </div>
+        <div class="form-group">
+          <i class="fas fa-venus-mars"></i>
+          <select id="reg-sesso">
+            <option value="">Sesso</option>
+            <option value="M">Maschio</option>
+            <option value="F">Femmina</option>
+          </select>
+        </div>
+      </div>
+      <p id="reg-errore" class="errore"></p>
+      <button class="btn-primary" onclick="registrati()">
+        <span>Crea account</span> <i class="fas fa-user-plus"></i>
+      </button>
+    </div>
+
+  </div>
+
+  <script>
+    fetch('/api/utente').then(r => {
+      if (r.ok) window.location.replace('/dashboard');
+    });
+
+    // Apre direttamente la registrazione se arriva dalla landing con ?tab=registrazione
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('tab') === 'registrazione') {
+      document.getElementById('tab-btn-login').classList.remove('active');
+      document.getElementById('tab-btn-registrazione').classList.add('active');
+      document.getElementById('tab-login').classList.add('nascosto');
+      document.getElementById('tab-registrazione').classList.remove('nascosto');
+    }
+
+    function mostraTab(tab, btnCliccato) {
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      btnCliccato.classList.add('active');
+      document.getElementById('tab-login').classList.add('nascosto');
+      document.getElementById('tab-registrazione').classList.add('nascosto');
+      document.getElementById('tab-' + tab).classList.remove('nascosto');
+    }
+
+    async function login() {
+      const email    = document.getElementById('login-email').value.trim();
+      const password = document.getElementById('login-password').value;
+      const errore   = document.getElementById('login-errore');
+
+      errore.textContent = '';
+      if (!email || !password) { errore.textContent = 'Inserisci email e password'; return; }
+
+      const res  = await fetch('/api/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password })
+      });
+      const data = await res.json();
+
+      if (res.ok) {
+        window.location.replace('/dashboard');
+      } else {
+        errore.textContent = data.errore;
+      }
+    }
+
+    async function registrati() {
+      const nome     = document.getElementById('reg-nome').value.trim();
+      const email    = document.getElementById('reg-email').value.trim();
+      const password = document.getElementById('reg-password').value;
+      const eta      = document.getElementById('reg-eta').value;
+      const sesso    = document.getElementById('reg-sesso').value;
+      const errore   = document.getElementById('reg-errore');
+
+      errore.textContent = '';
+      if (!nome || !email || !password || !eta || !sesso) {
+        errore.textContent = 'Compila tutti i campi'; return;
+      }
+      if (password.length < 6) {
+        errore.textContent = 'La password deve avere almeno 6 caratteri'; return;
+      }
+
+      const res  = await fetch('/api/registrazione', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ nome, email, password, eta, sesso })
+      });
+      const data = await res.json();
+
+      if (res.ok) {
+        window.location.replace('/dashboard');
+      } else {
+        errore.textContent = data.errore;
+      }
+    }
+
+    document.addEventListener('keydown', e => {
+      if (e.key !== 'Enter') return;
+      const loginNascosto = document.getElementById('tab-login').classList.contains('nascosto');
+      loginNascosto ? registrati() : login();
+    });
+  </script>
+
+</body>
+</html>

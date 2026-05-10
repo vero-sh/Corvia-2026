@@ -1,0 +1,16 @@
+{
+  "name": "salute-benessere-app",
+  "version": "1.0.0",
+  "description": "Webapp per il monitoraggio di peso e salute - Maturità 2026",
+  "main": "server.js",
+  "scripts": {
+    "start": "node --experimental-sqlite server.js"
+  },
+  "dependencies": {
+    "dotenv": "^16.0.0",
+    "groq-sdk": "^0.9.0",
+    "bcrypt": "^5.1.1",
+    "express": "^4.19.2",
+    "express-session": "^1.18.0"
+  }
+}
