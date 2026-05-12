@@ -87,8 +87,13 @@ app.post('/api/registrazione', async (req, res) => {
     const result = stmt.run(nome, email, hash, parseInt(eta), sesso);
     req.session.userId = Number(result.lastInsertRowid);
     res.json({ successo: true, nome });
-  } catch {
-    res.status(400).json({ errore: 'Email già registrata' });
+  } catch (err) {
+    console.error('Errore registrazione:', err.message);
+    if (err.message && err.message.includes('UNIQUE')) {
+      res.status(400).json({ errore: 'Email già registrata' });
+    } else {
+      res.status(500).json({ errore: `Errore server: ${err.message}` });
+    }
   }
 });
 
@@ -186,7 +191,7 @@ app.post('/api/chat', autenticato, async (req, res) => {
     contestoSalute = `Nome: ${utente.nome}, età: ${utente.eta} anni, sesso: ${utente.sesso === 'M' ? 'maschio' : 'femmina'}. BMI iniziale: ${prima.bmi} (${categoriaBmiStr(prima.bmi)}), peso iniziale: ${prima.peso} kg. BMI attuale: ${ultima.bmi} (${categoriaBmiStr(ultima.bmi)}), peso attuale: ${ultima.peso} kg, altezza: ${ultima.altezza} cm, metabolismo basale attuale: ${ultima.bmr} kcal/giorno.`;
   }
 
-  const systemPrompt = `Sei Corvi, l'assistente IA di Corvia, un'app per il monitoraggio della salute. Rispondi sempre in italiano in modo amichevole, pratico e motivante. Considera sempre i dati aggiornati dell'utente, non quelli iniziali. Dati dell'utente: ${contestoSalute}`;
+  const systemPrompt = `Il tuo nome è Corvi. Sei l'assistente IA dell'app Corvia per il monitoraggio della salute. Se ti chiedono come ti chiami, rispondi solo "Corvi". Rispondi sempre in italiano in modo amichevole, pratico e motivante. Considera sempre i dati aggiornati dell'utente, non quelli iniziali. Dati dell'utente: ${contestoSalute}`;
 
   try {
     const completion = await groq.chat.completions.create({

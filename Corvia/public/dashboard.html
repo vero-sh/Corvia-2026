@@ -23,6 +23,12 @@
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
+  <script>
+    (function() {
+      const t = localStorage.getItem('corvia-theme') || 'light';
+      document.documentElement.setAttribute('data-theme', t);
+    })();
+  </script>
 </head>
 <body>
 
@@ -34,6 +40,9 @@
     </div>
     <div class="navbar-user">
       <span id="benvenuto"></span>
+      <button class="btn-theme" id="btn-theme" onclick="toggleTheme()" title="Cambia tema">
+        <i class="fas fa-moon" id="theme-icon"></i>
+      </button>
       <button class="btn-logout" onclick="logout()">
         <i class="fas fa-sign-out-alt"></i> Esci
       </button>
@@ -173,7 +182,22 @@
   </main>
 
   <script>
-    // ── Variabili per i grafici (serve tenerle per poterli distruggere e ricreare) ──
+    // ── Tema chiaro / scuro ────────────────────────────────────────────────────
+    function toggleTheme() {
+      const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+      const next = isDark ? 'light' : 'dark';
+      document.documentElement.setAttribute('data-theme', next);
+      localStorage.setItem('corvia-theme', next);
+      document.getElementById('theme-icon').className = next === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
+    }
+
+    // Aggiorna icona al caricamento
+    window.addEventListener('DOMContentLoaded', () => {
+      const t = localStorage.getItem('corvia-theme') || 'light';
+      document.getElementById('theme-icon').className = t === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
+    });
+
+    // ── Variabili per i grafici (serve tenerle per poderli distruggere e ricreare) ──
     let graficoLinea = null;
     let graficoBmi   = null;
 
