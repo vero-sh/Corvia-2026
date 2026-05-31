@@ -13,7 +13,7 @@ const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
 
 // ── Database ─────────────────────────────────────────────────────────────────
 // DatabaseSync crea automaticamente il file se non esiste
-const db = new DatabaseSync('database.sqlite');
+const db = new DatabaseSync(process.env.DB_PATH || 'database.sqlite');
 
 // Creiamo le tabelle se non esistono ancora
 db.exec(`
