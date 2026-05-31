@@ -7,7 +7,7 @@ const path = require('path');
 const Groq = require('groq-sdk');
 
 const app = express();
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
 
 const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
 
