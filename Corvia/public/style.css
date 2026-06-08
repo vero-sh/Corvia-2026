@@ -332,6 +332,9 @@ body {
 }
 .form-group input,
 .form-group select {
+  -webkit-appearance: none;
+  appearance: none;
+  display: block;
   width: 100%;
   padding: 13px 16px 13px 40px;
   background: rgba(255, 255, 255, 0.15);
@@ -342,6 +345,7 @@ body {
   font-size: 14px;
   outline: none;
   transition: border-color 0.2s, background 0.2s;
+  box-sizing: border-box;
 }
 .form-group input::placeholder { color: rgba(255, 255, 255, 0.55); }
 .form-group input:focus,
