@@ -80,7 +80,6 @@ body {
   width: 280px;
   height: 280px;
   object-fit: contain;
-  mix-blend-mode: multiply;
   margin-bottom: 4px;
 }
 
@@ -230,8 +229,7 @@ body {
   position: relative;
   z-index: 1;
   animation: slideUp 0.5s ease;
-  transform: translateZ(0);
-  -webkit-transform: translateZ(0);
+  isolation: isolate;
 }
 
 @keyframes slideUp {
@@ -254,7 +252,8 @@ body {
   width: 100%;
   height: 100%;
   object-fit: contain;
-  mix-blend-mode: multiply;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
 }
 
 /* Logo nella navbar */
@@ -904,4 +903,33 @@ body {
   .logo-icon { width: 130px; height: 130px; }
   .auth-card .form-group input,
   .auth-card .form-group select { font-size: 16px; }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   FIX iOS / iPadOS — Safari ridisegna male il backdrop-filter sopra le bolle
+   animate, lasciando metà card/campi scuri ("smezzati"). Su iOS disattiviamo
+   il blur e usiamo uno sfondo semitrasparente: l'effetto vetro resta gradevole
+   e il glitch sparisce. Le altre piattaforme mantengono il blur.
+   Il selettore @supports (-webkit-touch-callout: none) intercetta solo iOS.
+═══════════════════════════════════════════════════════════════════════════ */
+@supports (-webkit-touch-callout: none) {
+  .auth-card {
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+    background: rgba(91, 94, 166, 0.55);
+  }
+  .feat,
+  .btn-landing-secondary {
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+  /* Campi un filo piu' opachi cosi' restano nitidi senza il blur dietro */
+  .form-group input,
+  .form-group select {
+    background: rgba(255, 255, 255, 0.2);
+  }
+  .form-group input:focus,
+  .form-group select:focus {
+    background: rgba(255, 255, 255, 0.3);
+  }
 }
