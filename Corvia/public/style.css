@@ -183,8 +183,9 @@ body {
   align-items: center;
   justify-content: center;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  overflow: hidden;
+  overflow-x: hidden;
   position: relative;
+  padding: 24px 0;
 }
 
 /* Bolle animate nello sfondo */
@@ -884,4 +885,6 @@ body {
 
   /* Auth */
   .logo-icon { width: 130px; height: 130px; }
+  .auth-card .form-group input,
+  .auth-card .form-group select { font-size: 16px; }
 }
