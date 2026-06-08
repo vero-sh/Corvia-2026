@@ -321,24 +321,26 @@ body {
 
 /* Campi form */
 .form-group {
-  position: relative;
+  display: flex;
+  align-items: center;
   margin-bottom: 16px;
+  position: relative;
 }
 .form-group i {
-  position: absolute;
-  left: 14px;
-  top: 50%;
-  transform: translateY(-50%);
+  flex-shrink: 0;
+  width: 40px;
+  text-align: center;
   color: rgba(255, 255, 255, 0.6);
   font-size: 14px;
+  pointer-events: none;
 }
 .form-group input,
 .form-group select {
   -webkit-appearance: none;
   appearance: none;
-  display: block;
-  width: 100%;
-  padding: 13px 16px 13px 40px;
+  flex: 1;
+  min-width: 0;
+  padding: 13px 16px;
   background: rgba(255, 255, 255, 0.15);
   border: 1px solid rgba(255, 255, 255, 0.3);
   border-radius: 10px;
