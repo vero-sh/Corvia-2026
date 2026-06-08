@@ -230,6 +230,8 @@ body {
   position: relative;
   z-index: 1;
   animation: slideUp 0.5s ease;
+  transform: translateZ(0);
+  -webkit-transform: translateZ(0);
 }
 
 @keyframes slideUp {
@@ -813,6 +815,15 @@ body {
 
   .landing-title { font-size: 56px; }
   .landing-logo  { width: 220px; height: 220px; }
+}
+
+/* Schermo basso (iPad landscape, telefoni in landscape) */
+@media (max-height: 820px) {
+  .landing-container { margin-top: -40px; }
+}
+@media (max-height: 700px) {
+  .landing-container { margin-top: 0; }
+  .landing-logo      { width: 120px; height: 120px; }
 }
 
 /* Tablet piccolo / telefono grande (≤768px) */
