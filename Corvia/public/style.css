@@ -626,9 +626,6 @@ body {
 }
 
 /* Form nuova misurazione */
-.form-card .form-group {
-  margin-bottom: 14px;
-}
 .form-card .form-group label {
   display: block;
   font-size: 13px;
