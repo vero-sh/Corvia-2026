@@ -263,6 +263,21 @@ body {
   object-fit: contain;
   filter: brightness(0) invert(1);
   flex-shrink: 0;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
+.navbar-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #fff;
+  font-size: 18px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: opacity 0.2s;
+  transform: translateZ(0);
+  -webkit-transform: translateZ(0);
 }
 
 .auth-logo {
@@ -417,16 +432,6 @@ body {
   padding: 0 32px;
   z-index: 100;
   box-shadow: 0 2px 16px rgba(99, 102, 241, 0.3);
-}
-.navbar-brand {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  color: #fff;
-  font-size: 18px;
-  font-weight: 700;
-  cursor: pointer;
-  transition: opacity 0.2s;
 }
 .navbar-brand:hover { opacity: 0.85; }
 .navbar-brand i { font-size: 20px; }
