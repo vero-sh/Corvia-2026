@@ -11,7 +11,7 @@ const PORT = process.env.PORT || 3000;
 
 function callGroq(messages) {
   return new Promise((resolve, reject) => {
-    const body = JSON.stringify({ model: 'llama-3.1-8b-instant', messages, max_tokens: 512 });
+    const body = JSON.stringify({ model: 'llama-3.1-8b-instant', messages, max_tokens: 1024 });
     const req = https.request({
       hostname: 'api.groq.com',
       path: '/openai/v1/chat/completions',
