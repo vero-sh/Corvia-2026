@@ -198,20 +198,27 @@ app.post('/api/chat', autenticato, async (req, res) => {
   const systemPrompt = `Il tuo nome è Corvi. Sei l'assistente IA dell'app Corvia per il monitoraggio della salute. Se ti chiedono come ti chiami, rispondi solo "Corvi". 
   Rispondi sempre in italiano in modo amichevole, pratico e motivante. Considera sempre i dati aggiornati dell'utente, non quelli iniziali. Dati dell'utente: ${contestoSalute}`;
 
-  try {
-    const completion = await groq.chat.completions.create({
-      model: 'llama-3.1-8b-instant',
-      messages: [
-        { role: 'system', content: systemPrompt },
-        ...(cronologia || []).slice(-20),
-        { role: 'user', content: messaggio }
-      ],
-      max_tokens: 1024
-    });
-    res.json({ risposta: completion.choices[0].message.content });
-  } catch (err) {
-    console.error('Errore Groq:', err.message);
-    res.status(500).json({ errore: `Errore API: ${err.message}` });
+  const messaggi = [
+    { role: 'system', content: systemPrompt },
+    ...(cronologia || []).slice(-10),
+    { role: 'user', content: messaggio }
+  ];
+
+  for (let tentativo = 1; tentativo <= 3; tentativo++) {
+    try {
+      const completion = await groq.chat.completions.create({
+        model: 'llama-3.1-8b-instant',
+        messages: messaggi,
+        max_tokens: 512
+      });
+      return res.json({ risposta: completion.choices[0].message.content });
+    } catch (err) {
+      console.error(`Errore Groq (tentativo ${tentativo}):`, err.message);
+      if (tentativo === 3) {
+        return res.status(500).json({ errore: 'Corvi non è disponibile al momento, riprova tra qualche secondo.' });
+      }
+      await new Promise(r => setTimeout(r, 1000 * tentativo));
+    }
   }
 });
 
