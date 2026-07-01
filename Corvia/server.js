@@ -4,12 +4,36 @@ const { DatabaseSync } = require('node:sqlite'); // modulo SQLite integrato in N
 const bcrypt = require('bcrypt');
 const session = require('express-session');
 const path = require('path');
-const Groq = require('groq-sdk');
+const https = require('https');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
+function callGroq(messages) {
+  return new Promise((resolve, reject) => {
+    const body = JSON.stringify({ model: 'llama-3.1-8b-instant', messages, max_tokens: 512 });
+    const req = https.request({
+      hostname: 'api.groq.com',
+      path: '/openai/v1/chat/completions',
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${process.env.GROQ_API_KEY}`,
+        'Content-Type': 'application/json',
+        'Content-Length': Buffer.byteLength(body)
+      }
+    }, (res) => {
+      let data = '';
+      res.on('data', chunk => data += chunk);
+      res.on('end', () => {
+        try { resolve(JSON.parse(data)); }
+        catch (e) { reject(new Error(`Risposta non valida: ${data.slice(0, 200)}`)); }
+      });
+    });
+    req.on('error', reject);
+    req.write(body);
+    req.end();
+  });
+}
 
 // ── Database ─────────────────────────────────────────────────────────────────
 // DatabaseSync crea automaticamente il file se non esiste
@@ -204,21 +228,16 @@ app.post('/api/chat', autenticato, async (req, res) => {
     { role: 'user', content: messaggio }
   ];
 
-  for (let tentativo = 1; tentativo <= 3; tentativo++) {
-    try {
-      const completion = await groq.chat.completions.create({
-        model: 'llama-3.1-8b-instant',
-        messages: messaggi,
-        max_tokens: 512
-      });
-      return res.json({ risposta: completion.choices[0].message.content });
-    } catch (err) {
-      console.error(`Errore Groq (tentativo ${tentativo}):`, err.message);
-      if (tentativo === 3) {
-        return res.status(500).json({ errore: 'Corvi non è disponibile al momento, riprova tra qualche secondo.' });
-      }
-      await new Promise(r => setTimeout(r, 1000 * tentativo));
+  try {
+    const completion = await callGroq(messaggi);
+    if (completion.error) {
+      console.error('Errore Groq:', completion.error);
+      return res.status(500).json({ errore: `Errore API: ${completion.error.message}` });
     }
+    res.json({ risposta: completion.choices[0].message.content });
+  } catch (err) {
+    console.error('Errore Groq:', err.message);
+    res.status(500).json({ errore: 'Corvi non è disponibile al momento, riprova tra qualche secondo.' });
   }
 });
 
