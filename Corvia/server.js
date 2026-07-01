@@ -79,7 +79,7 @@ app.post('/api/registrazione', async (req, res) => {
   }
 
   // Hash della password: non salviamo mai la password in chiaro
-  const hash = await bcrypt.hash(password, 10);
+  const hash = await bcrypt.hash(password, 12);
 
   try {
     const stmt = db.prepare(
